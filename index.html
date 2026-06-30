@@ -1,0 +1,715 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>나만의 미래모빌리티 도시</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700&family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0E1B2E;
+    --bg-deep:#0A1422;
+    --grid-line:#1F3A5C;
+    --grid-line-strong:#2C4A6E;
+    --panel:#122440;
+    --panel-border:#25406399;
+    --text:#EAF1FB;
+    --text-muted:#7F95B0;
+    --road:#4DD9E8;
+    --road-dim:#1C5560;
+    --uam:#B98CF0;
+    --uam-dim:#4A3470;
+    --transit:#6FE3A0;
+    --transit-dim:#225C42;
+    --building:#F2A65A;
+    --building-dim:#6B4520;
+    --park:#4F9E72;
+    --park-dim:#1E3F2C;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    background:radial-gradient(circle at 20% 0%, #102544 0%, var(--bg-deep) 60%);
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    min-height:100vh;
+    padding:32px 20px 60px;
+  }
+  .wrap{max-width:1180px;margin:0 auto;}
+
+  header{margin-bottom:28px;}
+  .eyebrow{
+    font-family:'JetBrains Mono', monospace;
+    font-size:12px;
+    letter-spacing:0.18em;
+    color:var(--road);
+    text-transform:uppercase;
+    margin:0 0 10px;
+  }
+  .title-row{display:flex;align-items:baseline;gap:16px;flex-wrap:wrap;}
+  h1{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:34px;
+    font-weight:700;
+    margin:0;
+    letter-spacing:-0.01em;
+  }
+  #city-name{
+    background:transparent;
+    border:none;
+    border-bottom:2px solid var(--grid-line-strong);
+    color:var(--building);
+    font-family:'Space Grotesk', sans-serif;
+    font-size:24px;
+    font-weight:600;
+    padding:2px 4px;
+    outline:none;
+    min-width:160px;
+  }
+  #city-name:focus{border-bottom-color:var(--road);}
+  .subtitle{
+    color:var(--text-muted);
+    font-size:14.5px;
+    margin:10px 0 0;
+    line-height:1.6;
+    max-width:640px;
+  }
+
+  .layout{
+    display:flex;
+    gap:22px;
+    align-items:flex-start;
+    flex-wrap:wrap;
+  }
+
+  .toolbar{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:14px;
+    display:flex;
+    flex-direction:column;
+    gap:8px;
+    width:178px;
+    flex-shrink:0;
+  }
+  .toolbar-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.12em;
+    color:var(--text-muted);
+    text-transform:uppercase;
+    margin:2px 0 4px;
+  }
+  .tool-btn{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:transparent;
+    border:1px solid transparent;
+    border-radius:8px;
+    padding:9px 10px;
+    cursor:pointer;
+    color:var(--text);
+    font-family:'Inter', sans-serif;
+    font-size:13.5px;
+    text-align:left;
+    transition:background 0.15s, border-color 0.15s;
+  }
+  .tool-btn:hover{background:#1A2F4E;}
+  .tool-btn.active{
+    background:#1A2F4E;
+    border-color:var(--swatch, var(--road));
+  }
+  .swatch{
+    width:18px;height:18px;border-radius:4px;flex-shrink:0;
+    position:relative;
+  }
+  .swatch.road{background:var(--road-dim);border:1.5px solid var(--road);}
+  .swatch.uam{background:var(--uam-dim);border:1.5px solid var(--uam);border-radius:50%;}
+  .swatch.transit{background:var(--transit-dim);border:1.5px solid var(--transit);}
+  .swatch.building{background:var(--building-dim);border:1.5px solid var(--building);}
+  .swatch.park{background:var(--park-dim);border:1.5px solid var(--park);border-radius:50%;}
+  .swatch.eraser{background:transparent;border:1.5px dashed var(--text-muted);}
+
+  .divider{height:1px;background:var(--panel-border);margin:6px 0;}
+
+  .reset-btn{
+    background:transparent;
+    border:1px solid var(--panel-border);
+    border-radius:8px;
+    padding:8px 10px;
+    color:var(--text-muted);
+    font-family:'Inter', sans-serif;
+    font-size:13px;
+    cursor:pointer;
+  }
+  .reset-btn:hover{color:#E2867E;border-color:#E2867E;}
+
+  .board-area{
+    position:relative;
+    flex:1;
+    min-width:320px;
+  }
+
+  .sky{
+    position:relative;
+    height:34px;
+    overflow:hidden;
+    margin-bottom:4px;
+  }
+  .drone{
+    position:absolute;
+    top:0;
+    width:14px;
+    height:14px;
+    opacity:0.85;
+  }
+  .drone svg{width:100%;height:100%;}
+  .drone.d1{animation:fly1 14s linear infinite; top:2px;}
+  .drone.d2{animation:fly2 19s linear infinite; top:16px;}
+  .drone.d3{animation:fly3 23s linear infinite; top:8px;}
+  @keyframes fly1{from{left:-5%; transform:scaleX(1);} 49%{transform:scaleX(1);} 50%{left:105%; transform:scaleX(-1);} 99%{transform:scaleX(-1);} to{left:-5%; transform:scaleX(1);}}
+  @keyframes fly2{from{left:110%; transform:scaleX(-1);} to{left:-10%; transform:scaleX(-1);}}
+  @keyframes fly3{from{left:-8%; transform:scaleX(1);} to{left:108%; transform:scaleX(1);}}
+
+  .board-frame{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:14px;
+    overflow-x:auto;
+  }
+  .board-grid-wrap{
+    display:inline-grid;
+    grid-template-columns:22px 1fr;
+    grid-template-rows:18px 1fr;
+  }
+  .corner{}
+  .col-labels{
+    display:flex;
+  }
+  .col-label{
+    width:38px;
+    text-align:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--text-muted);
+  }
+  .row-labels{
+    display:flex;
+    flex-direction:column;
+  }
+  .row-label{
+    height:38px;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    font-family:'JetBrains Mono', monospace;
+    font-size:10px;
+    color:var(--text-muted);
+  }
+  .board{
+    display:grid;
+    grid-template-columns:repeat(14, 38px);
+    grid-template-rows:repeat(9, 38px);
+    gap:2px;
+    background:var(--grid-line);
+    padding:2px;
+    border-radius:4px;
+  }
+  .cell{
+    background:var(--bg-deep);
+    background-image:
+      linear-gradient(var(--grid-line) 1px, transparent 1px),
+      linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
+    background-size:100% 100%;
+    position:relative;
+    cursor:pointer;
+    border-radius:2px;
+    overflow:hidden;
+    user-select:none;
+  }
+  .cell:hover{outline:1px solid var(--text-muted);outline-offset:-1px;}
+
+  .cell[data-type="road"]{background:var(--road-dim);}
+  .cell[data-type="road"]::after{
+    content:'';
+    position:absolute;top:50%;left:0;right:0;height:2px;
+    transform:translateY(-50%);
+    background:repeating-linear-gradient(90deg, var(--road) 0 5px, transparent 5px 10px);
+  }
+  .cell[data-type="road"] .pulse{
+    position:absolute;top:50%;left:0;width:4px;height:4px;
+    transform:translateY(-50%);
+    background:var(--road);border-radius:50%;
+    box-shadow:0 0 4px var(--road);
+    animation:roadFlow 2.4s linear infinite;
+  }
+  @keyframes roadFlow{from{left:-6px;}to{left:100%;}}
+
+  .cell[data-type="uam"]{background:var(--uam-dim);}
+  .cell[data-type="uam"]::after{
+    content:'';
+    position:absolute;top:50%;left:50%;width:22px;height:22px;
+    transform:translate(-50%,-50%);
+    border:1.5px solid var(--uam);border-radius:50%;
+  }
+  .cell[data-type="uam"] .pulse{
+    position:absolute;top:50%;left:50%;width:6px;height:6px;
+    transform:translate(-50%,-50%);
+    background:var(--uam);border-radius:50%;
+    box-shadow:0 0 6px var(--uam);
+  }
+  .cell[data-type="uam"] .ring{
+    position:absolute;top:50%;left:50%;width:8px;height:8px;
+    transform:translate(-50%,-50%);
+    border:1.5px solid var(--uam);border-radius:50%;
+    animation:ping 2s ease-out infinite;
+  }
+  @keyframes ping{0%{width:8px;height:8px;opacity:0.9;}100%{width:34px;height:34px;opacity:0;}}
+
+  .cell[data-type="transit"]{background:var(--transit-dim);}
+  .cell[data-type="transit"]::after{
+    content:'';
+    position:absolute;left:50%;top:0;bottom:0;width:2px;
+    transform:translateX(-50%);
+    background:repeating-linear-gradient(180deg, var(--transit) 0 5px, transparent 5px 10px);
+  }
+  .cell[data-type="transit"] .pulse{
+    position:absolute;left:50%;top:-6px;width:4px;height:4px;
+    transform:translateX(-50%);
+    background:var(--transit);border-radius:50%;
+    box-shadow:0 0 4px var(--transit);
+    animation:transitFlow 2.8s linear infinite;
+  }
+  @keyframes transitFlow{from{top:-6px;}to{top:100%;}}
+
+  .cell[data-type="building"]{background:var(--building-dim);}
+  .cell[data-type="building"]::after{
+    content:'';
+    position:absolute;inset:4px;
+    background-image:
+      linear-gradient(var(--building) 1px, transparent 1px),
+      linear-gradient(90deg, var(--building) 1px, transparent 1px);
+    background-size:9px 9px;
+    opacity:0.55;
+  }
+  .cell[data-type="building"].v2::after{background-size:6px 12px;}
+  .cell[data-type="building"].v3::after{background-size:12px 6px;}
+
+  .cell[data-type="park"]{background:var(--park-dim);}
+  .cell[data-type="park"]::after{
+    content:'';
+    position:absolute;top:50%;left:50%;width:14px;height:14px;
+    transform:translate(-50%,-50%);
+    background:var(--park);border-radius:50%;
+    box-shadow:8px 8px 0 -3px var(--park), -9px 6px 0 -4px var(--park), 4px -9px 0 -5px var(--park);
+    opacity:0.85;
+  }
+
+  .stats{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(150px, 1fr));
+    gap:12px;
+    margin-top:22px;
+  }
+  .stat-card{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:14px 16px;
+  }
+  .stat-label{
+    font-family:'JetBrains Mono', monospace;
+    font-size:10.5px;
+    letter-spacing:0.1em;
+    text-transform:uppercase;
+    color:var(--text-muted);
+    margin:0 0 8px;
+  }
+  .stat-value{
+    font-family:'Space Grotesk', sans-serif;
+    font-size:26px;
+    font-weight:600;
+    margin:0;
+  }
+  .stat-card.road-card .stat-value{color:var(--road);}
+  .stat-card.uam-card .stat-value{color:var(--uam);}
+  .stat-card.transit-card .stat-value{color:var(--transit);}
+  .stat-card.building-card .stat-value{color:var(--building);}
+
+  .legend{
+    display:flex;
+    gap:14px;
+    flex-wrap:wrap;
+    margin-top:18px;
+    font-size:12px;
+    color:var(--text-muted);
+  }
+  .legend span{display:inline-flex;align-items:center;gap:6px;}
+  .legend i{width:10px;height:10px;border-radius:3px;display:inline-block;}
+
+  .city-view-panel{
+    background:var(--panel);
+    border:1px solid var(--panel-border);
+    border-radius:10px;
+    padding:14px;
+    width:240px;
+    flex-shrink:0;
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .city-view-panel .toolbar-label{margin:0;}
+  .city-canvas-wrap{
+    border-radius:6px;
+    overflow:hidden;
+    border:1px solid var(--grid-line);
+    background:#03070F;
+  }
+  #city-canvas{display:block;width:100%;height:auto;}
+  .city-empty-hint{
+    font-size:11px;
+    color:var(--text-muted);
+    text-align:center;
+    margin:0;
+    line-height:1.5;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Future mobility masterplan / 2045</p>
+    <div class="title-row">
+      <h1>나만의 미래모빌리티 도시</h1>
+      <input id="city-name" value="Neo Hangang" />
+    </div>
+    <p class="subtitle">도구를 선택하고 칸을 클릭(또는 드래그)해서 자율주행 도로, UAM 정류장, 친환경 트랜짓, 건물, 공원을 배치해보세요. 배치할수록 도시 지표가 실시간으로 바뀝니다.</p>
+  </header>
+
+  <div class="layout">
+    <aside class="toolbar">
+      <p class="toolbar-label">배치 도구</p>
+      <button class="tool-btn active" data-type="road" style="--swatch:var(--road)">
+        <span class="swatch road"></span>자율주행 스마트도로
+      </button>
+      <button class="tool-btn" data-type="uam" style="--swatch:var(--uam)">
+        <span class="swatch uam"></span>UAM·드론 정류장
+      </button>
+      <button class="tool-btn" data-type="transit" style="--swatch:var(--transit)">
+        <span class="swatch transit"></span>친환경 트랜짓 라인
+      </button>
+      <button class="tool-btn" data-type="building" style="--swatch:var(--building)">
+        <span class="swatch building"></span>주거·상업 빌딩
+      </button>
+      <button class="tool-btn" data-type="park" style="--swatch:var(--park)">
+        <span class="swatch park"></span>그린 공원
+      </button>
+      <button class="tool-btn" data-type="empty" style="--swatch:#7F95B0">
+        <span class="swatch eraser"></span>지우개
+      </button>
+      <div class="divider"></div>
+      <button class="reset-btn" id="reset">전체 초기화</button>
+    </aside>
+
+    <div class="board-area">
+      <div class="sky">
+        <div class="drone d1"><svg viewBox="0 0 24 24" fill="none" stroke="#B98CF0" stroke-width="2"><circle cx="12" cy="12" r="2"/><line x1="2" y1="6" x2="22" y2="18"/><line x1="22" y1="6" x2="2" y2="18"/></svg></div>
+        <div class="drone d2"><svg viewBox="0 0 24 24" fill="none" stroke="#B98CF0" stroke-width="2"><circle cx="12" cy="12" r="2"/><line x1="2" y1="6" x2="22" y2="18"/><line x1="22" y1="6" x2="2" y2="18"/></svg></div>
+        <div class="drone d3"><svg viewBox="0 0 24 24" fill="none" stroke="#B98CF0" stroke-width="2"><circle cx="12" cy="12" r="2"/><line x1="2" y1="6" x2="22" y2="18"/><line x1="22" y1="6" x2="2" y2="18"/></svg></div>
+      </div>
+      <div class="board-frame">
+        <div class="board-grid-wrap">
+          <div class="corner"></div>
+          <div class="col-labels" id="col-labels"></div>
+          <div class="row-labels" id="row-labels"></div>
+          <div class="board" id="board"></div>
+        </div>
+      </div>
+
+      <div class="legend">
+        <span><i style="background:var(--road)"></i>스마트도로</span>
+        <span><i style="background:var(--uam)"></i>UAM 정류장</span>
+        <span><i style="background:var(--transit)"></i>친환경 트랜짓</span>
+        <span><i style="background:var(--building)"></i>빌딩</span>
+        <span><i style="background:var(--park)"></i>공원</span>
+      </div>
+    </div>
+
+    <div class="city-view-panel">
+      <p class="toolbar-label">생성된 도시 모습</p>
+      <div class="city-canvas-wrap">
+        <canvas id="city-canvas" width="212" height="300"></canvas>
+      </div>
+      <p class="city-empty-hint" id="city-hint">타일을 배치하면<br>도시가 생성됩니다</p>
+    </div>
+  </div>
+
+  <div class="stats">
+    <div class="stat-card">
+      <p class="stat-label">예상 인구</p>
+      <p class="stat-value" id="stat-pop">0명</p>
+    </div>
+    <div class="stat-card road-card">
+      <p class="stat-label">모빌리티 점수</p>
+      <p class="stat-value" id="stat-mobility">0</p>
+    </div>
+    <div class="stat-card transit-card">
+      <p class="stat-label">탄소 절감률</p>
+      <p class="stat-value" id="stat-carbon">0%</p>
+    </div>
+    <div class="stat-card building-card">
+      <p class="stat-label">그린 인프라</p>
+      <p class="stat-value" id="stat-green">0칸</p>
+    </div>
+  </div>
+</div>
+
+<script>
+  const COLS = 14, ROWS = 9;
+  const board = document.getElementById('board');
+  const colLabels = document.getElementById('col-labels');
+  const rowLabels = document.getElementById('row-labels');
+  let selectedType = 'road';
+  let isPainting = false;
+
+  for(let c=0;c<COLS;c++){
+    const d = document.createElement('div');
+    d.className = 'col-label';
+    d.textContent = c+1;
+    colLabels.appendChild(d);
+  }
+  const letters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+  for(let r=0;r<ROWS;r++){
+    const d = document.createElement('div');
+    d.className = 'row-label';
+    d.textContent = letters[r];
+    rowLabels.appendChild(d);
+  }
+
+  for(let i=0;i<COLS*ROWS;i++){
+    const cell = document.createElement('div');
+    cell.className = 'cell';
+    cell.dataset.type = 'empty';
+    cell.addEventListener('mousedown', ()=>{ isPainting = true; paint(cell); });
+    cell.addEventListener('mouseenter', ()=>{ if(isPainting) paint(cell); });
+    cell.addEventListener('click', ()=> paint(cell));
+    board.appendChild(cell);
+  }
+  document.addEventListener('mouseup', ()=> isPainting = false);
+
+  function paint(cell){
+    cell.classList.remove('v2','v3');
+    cell.querySelectorAll('.pulse, .ring').forEach(n=>n.remove());
+    cell.dataset.type = selectedType;
+    if(selectedType === 'road'){
+      const p = document.createElement('div'); p.className='pulse'; p.style.animationDelay = (Math.random()*2)+'s'; cell.appendChild(p);
+    } else if(selectedType === 'uam'){
+      const p = document.createElement('div'); p.className='pulse'; cell.appendChild(p);
+      const r = document.createElement('div'); r.className='ring'; r.style.animationDelay = (Math.random()*1.5)+'s'; cell.appendChild(r);
+    } else if(selectedType === 'transit'){
+      const p = document.createElement('div'); p.className='pulse'; p.style.animationDelay = (Math.random()*2.5)+'s'; cell.appendChild(p);
+    } else if(selectedType === 'building'){
+      const v = Math.floor(Math.random()*3);
+      if(v===1) cell.classList.add('v2');
+      if(v===2) cell.classList.add('v3');
+    }
+    updateStats();
+  }
+
+  document.querySelectorAll('.tool-btn').forEach(btn=>{
+    btn.addEventListener('click', ()=>{
+      document.querySelectorAll('.tool-btn').forEach(b=>b.classList.remove('active'));
+      btn.classList.add('active');
+      selectedType = btn.dataset.type;
+    });
+  });
+
+  document.getElementById('reset').addEventListener('click', ()=>{
+    document.querySelectorAll('.cell').forEach(cell=>{
+      cell.dataset.type = 'empty';
+      cell.classList.remove('v2','v3');
+      cell.querySelectorAll('.pulse, .ring').forEach(n=>n.remove());
+    });
+    updateStats();
+  });
+
+  function updateStats(){
+    const counts = { road:0, uam:0, transit:0, building:0, park:0 };
+    document.querySelectorAll('.cell').forEach(cell=>{
+      const t = cell.dataset.type;
+      if(counts[t] !== undefined) counts[t]++;
+    });
+    const population = counts.building * 240;
+    const mobility = Math.min(100, Math.round(counts.road*1.5 + counts.uam*6 + counts.transit*4));
+    let carbon = Math.round(counts.transit*3 + counts.uam*2 + counts.park*4 - counts.building*0.8);
+    carbon = Math.max(0, Math.min(95, carbon));
+
+    document.getElementById('stat-pop').textContent = population.toLocaleString('ko-KR') + '명';
+    document.getElementById('stat-mobility').textContent = mobility;
+    document.getElementById('stat-carbon').textContent = carbon + '%';
+    document.getElementById('stat-green').textContent = counts.park + '칸';
+    drawCity();
+  }
+
+  /* ── 도시 스카이라인 렌더러 ── */
+  function sr(seed){ const x = Math.sin(seed + 1) * 10000; return x - Math.floor(x); }
+
+  function drawCity(){
+    const canvas = document.getElementById('city-canvas');
+    if(!canvas) return;
+    const ctx = canvas.getContext('2d');
+    const W = canvas.width, H = canvas.height;
+    ctx.clearRect(0, 0, W, H);
+
+    const groundY = Math.floor(H * 0.77);
+    const colW = W / COLS;
+
+    // 하늘 그라디언트
+    const sky = ctx.createLinearGradient(0, 0, 0, groundY);
+    sky.addColorStop(0, '#03070F');
+    sky.addColorStop(0.5, '#0B1628');
+    sky.addColorStop(1, '#122440');
+    ctx.fillStyle = sky;
+    ctx.fillRect(0, 0, W, groundY);
+
+    // 별
+    for(let i = 0; i < 55; i++){
+      ctx.globalAlpha = sr(i * 7.3 + 3) * 0.55 + 0.15;
+      ctx.fillStyle = '#EAF1FB';
+      ctx.fillRect(Math.floor(sr(i * 3.7 + 1) * W), Math.floor(sr(i * 5.1 + 2) * groundY * 0.88), 1, 1);
+    }
+    ctx.globalAlpha = 1;
+
+    // 칸별 데이터 집계
+    const cells = document.querySelectorAll('.cell');
+    const colData = Array.from({length: COLS}, ()=>({road:0, uam:0, transit:0, building:0, park:0}));
+    let totalTiles = 0;
+    cells.forEach((cell, i)=>{
+      const c = i % COLS;
+      const t = cell.dataset.type;
+      if(colData[c][t] !== undefined){ colData[c][t]++; totalTiles++; }
+    });
+
+    // 힌트 숨김/표시
+    document.getElementById('city-hint').style.display = totalTiles === 0 ? 'block' : 'none';
+
+    // 트랜짓 레일 (건물 뒤에 먼저 그림)
+    const transitY = groundY - 14;
+    let tStart = -1;
+    for(let c = 0; c <= COLS; c++){
+      const has = c < COLS && colData[c].transit > 0;
+      if(has){ if(tStart < 0) tStart = c; }
+      else if(tStart >= 0){
+        const x1 = tStart * colW, x2 = c * colW;
+        ctx.fillStyle = '#1A3D2C'; ctx.fillRect(x1, transitY - 1, x2 - x1, 5);
+        ctx.fillStyle = '#6FE3A0'; ctx.fillRect(x1, transitY - 1, x2 - x1, 1.5);
+        ctx.fillStyle = '#225C42'; ctx.fillRect(x1, transitY + 2, x2 - x1, 1.5);
+        tStart = -1;
+      }
+    }
+
+    // 건물
+    colData.forEach((data, c)=>{
+      if(data.building === 0) return;
+      const x = c * colW + 1, cw = colW - 2;
+      const levels = Math.min(data.building, ROWS);
+      const bh = 14 + levels * 20;
+      const by = groundY - bh;
+
+      const bGrad = ctx.createLinearGradient(x, by, x + cw, by);
+      bGrad.addColorStop(0, '#1E3560'); bGrad.addColorStop(1, '#152840');
+      ctx.fillStyle = bGrad; ctx.fillRect(x, by, cw, bh);
+
+      // 외곽선 · 지붕
+      ctx.fillStyle = '#F2A65A'; ctx.fillRect(x, by, cw, 1.5);
+      ctx.fillStyle = '#FFFFFF12'; ctx.fillRect(x, by, 1, bh);
+
+      // 창문
+      for(let wy = by + 4; wy < groundY - 4; wy += 8){
+        for(let wx = Math.floor(x) + 2; wx < Math.floor(x + cw) - 3; wx += 5){
+          const sd = c * 100000 + wy * 100 + wx;
+          if(sr(sd) > 0.32){
+            const warm = sr(sd + 50);
+            ctx.fillStyle = warm > 0.55
+              ? `rgba(242,166,90,${(0.65 + warm * 0.3).toFixed(2)})`
+              : `rgba(180,220,255,${(0.45 + warm * 0.3).toFixed(2)})`;
+            ctx.fillRect(wx, wy, 2.5, 4);
+          }
+        }
+      }
+
+      // UAM 옥상 패드
+      if(data.uam > 0){
+        const pcx = x + cw / 2;
+        ctx.strokeStyle = '#B98CF0'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.arc(pcx, by - 5, 4, 0, Math.PI * 2); ctx.stroke();
+        ctx.strokeStyle = '#B98CF050'; ctx.lineWidth = 2;
+        ctx.beginPath(); ctx.arc(pcx, by - 5, 7, 0, Math.PI * 2); ctx.stroke();
+      }
+    });
+
+    // 독립 UAM 타워
+    colData.forEach((data, c)=>{
+      if(data.uam === 0 || data.building > 0) return;
+      const x = c * colW, cx = x + colW / 2;
+      const towerH = 28 + data.uam * 12, ty = groundY - towerH;
+      ctx.fillStyle = '#4A3470'; ctx.fillRect(cx - 1, ty, 2, towerH);
+      ctx.strokeStyle = '#B98CF0'; ctx.lineWidth = 1.5;
+      ctx.beginPath(); ctx.arc(cx, ty, 6, 0, Math.PI * 2); ctx.stroke();
+      ctx.strokeStyle = '#B98CF030'; ctx.lineWidth = 2;
+      ctx.beginPath(); ctx.arc(cx, ty, 11, 0, Math.PI * 2); ctx.stroke();
+    });
+
+    // 나무
+    colData.forEach((data, c)=>{
+      if(data.park === 0) return;
+      const x = c * colW, cw = colW;
+      const cnt = Math.min(data.park, 3);
+      for(let t = 0; t < cnt; t++){
+        const tcx = x + cw * (t + 0.5) / cnt;
+        const tH = 13 + sr(c * 17 + t * 31) * 7;
+        ctx.fillStyle = '#5C3A1E'; ctx.fillRect(tcx - 1, groundY - 5, 2, 5);
+        ctx.fillStyle = '#4F9E72';
+        ctx.beginPath(); ctx.moveTo(tcx, groundY - tH); ctx.lineTo(tcx - 5, groundY - 4); ctx.lineTo(tcx + 5, groundY - 4); ctx.closePath(); ctx.fill();
+        ctx.fillStyle = '#3D7A58';
+        ctx.beginPath(); ctx.moveTo(tcx, groundY - tH + 4); ctx.lineTo(tcx - 3, groundY - 6); ctx.lineTo(tcx + 3, groundY - 6); ctx.closePath(); ctx.fill();
+      }
+    });
+
+    // 지면
+    const gGrad = ctx.createLinearGradient(0, groundY, 0, H);
+    gGrad.addColorStop(0, '#1E3254'); gGrad.addColorStop(1, '#0A1422');
+    ctx.fillStyle = gGrad; ctx.fillRect(0, groundY, W, H - groundY);
+
+    // 도로
+    colData.forEach((data, c)=>{
+      if(data.road === 0) return;
+      const x = c * colW;
+      ctx.fillStyle = '#1C5560'; ctx.fillRect(x, groundY, colW, 5);
+      for(let rx = x + 1; rx < x + colW - 3; rx += 7){
+        ctx.fillStyle = '#4DD9E840'; ctx.fillRect(rx, groundY + 2, 3.5, 1);
+      }
+    });
+
+    // 수평선 글로우
+    ctx.fillStyle = '#4DD9E810'; ctx.fillRect(0, groundY - 1, W, 3);
+
+    // 도시 이름
+    const name = (document.getElementById('city-name').value || 'CITY').toUpperCase();
+    ctx.font = '500 8px "JetBrains Mono", monospace';
+    ctx.fillStyle = '#7F95B055';
+    ctx.textAlign = 'center';
+    ctx.fillText(name, W / 2, H - 5);
+  }
+
+  document.getElementById('city-name').addEventListener('input', drawCity);
+
+  updateStats();
+</script>
+</body>
+</html>
